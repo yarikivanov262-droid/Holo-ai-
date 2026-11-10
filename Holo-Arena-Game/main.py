@@ -1,7 +1,9 @@
+import math
+
 import pygame
 
-from entities import Bullet, Enemy, Gem, Player, Wall
 from settings import BG_COLOR, FPS, HEIGHT, WIDTH
+from entities import Enemy, Gem, Player, Wall
 
 
 def build_level():
@@ -25,7 +27,7 @@ def build_level():
         walls.add(Wall(x, y, w, h))
 
     for i in range(10):
-        angle = (2 * 3.14159 * i) / 10
+        angle = (2 * math.pi * i) / 10
         r = 170
         x = WIDTH / 2 + math.cos(angle) * r
         y = HEIGHT / 2 + math.sin(angle) * r
@@ -50,7 +52,6 @@ def main():
 
     walls, gems, player, enemies = build_level()
     bullets = pygame.sprite.Group()
-    all_sprites = pygame.sprite.Group(walls, gems, player, enemies, bullets)
 
     running = True
     while running:
@@ -61,7 +62,7 @@ def main():
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
 
-        player.update(dt, all_sprites, walls, bullets)
+        player.update(dt, None, walls, bullets)
         enemies.update(dt, walls, bullets)
         bullets.update(dt, walls)
 
@@ -97,5 +98,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import math
     main()

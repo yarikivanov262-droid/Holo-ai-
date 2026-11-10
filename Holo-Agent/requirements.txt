@@ -1,0 +1,9 @@
+pygame
+mss
+opencv-python
+onnxruntime
+pyautogui
+pyTelegramBotAPI
+adbutils
+requests
+numpy
