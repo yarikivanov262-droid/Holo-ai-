@@ -21,7 +21,10 @@ class Brain:
 
         gems = [d for d in detections if d.get("class") == "gem"]
         if gems:
-            gem = min(gems, key=lambda d: math.hypot(d["center"][0] - (WIDTH / 2), d["center"][1] - (HEIGHT / 2)))
+            gem = min(
+                gems,
+                key=lambda d: math.hypot(d["center"][0] - (WIDTH / 2), d["center"][1] - (HEIGHT / 2)),
+            )
             controller.move(*gem["center"])
             return
 

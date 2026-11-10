@@ -2,6 +2,8 @@ import math
 
 import pygame
 
+from settings import HEIGHT, WIDTH
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -10,22 +12,22 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, (0, 255, 0), (0, 0, 40, 40))
         self.rect = self.image.get_rect(center=(x, y))
         self.target = pygame.math.Vector2(x, y)
-        self.speed = 6
+        self.speed = 5.5
         self.shoot_cooldown = 0.0
         self.score = 0
 
-    def update(self, dt, all_sprites, walls, bullets_group):
+    def update(self, dt, walls, bullets_group):
         mouse_x, mouse_y = pygame.mouse.get_pos()
         self.target.x = mouse_x
         self.target.y = mouse_y
 
-        move_vec = self.target - pygame.math.Vector2(self.rect.centerx, self.rect.centery)
-        if move_vec.length() > 1:
-            move_vec = move_vec.normalize() * self.speed
-            next_rect = self.rect.move(move_vec.x, move_vec.y)
+        direction = self.target - pygame.math.Vector2(self.rect.centerx, self.rect.centery)
+        if direction.length() > 1:
+            direction = direction.normalize() * self.speed
+            next_rect = self.rect.move(direction.x, direction.y)
             if not self._collides_with_walls(next_rect, walls):
-                self.rect.x += move_vec.x
-                self.rect.y += move_vec.y
+                self.rect.x += direction.x
+                self.rect.y += direction.y
 
         self.shoot_cooldown -= dt
         if pygame.mouse.get_pressed()[0] and self.shoot_cooldown <= 0:
@@ -47,9 +49,9 @@ class Player(pygame.sprite.Sprite):
         if distance == 0:
             dx, dy = 1, 0
             distance = 1
-        bullet_dir = pygame.math.Vector2(dx / distance, dy / distance)
-        bullet = Bullet(start_x, start_y, bullet_dir.x, bullet_dir.y)
-        bullets_group.add(bullet)
+        vel_x = dx / distance
+        vel_y = dy / distance
+        bullets_group.add(Bullet(start_x, start_y, vel_x, vel_y, enemy=False))
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -59,7 +61,7 @@ class Enemy(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, (255, 0, 0), (0, 0, 40, 40))
         self.rect = self.image.get_rect(center=(x, y))
         self.player = player
-        self.speed = 1.3
+        self.speed = 1.4
         self.shoot_cooldown = 0.0
 
     def update(self, dt, walls, bullets_group):
@@ -71,11 +73,11 @@ class Enemy(pygame.sprite.Sprite):
             self.player.rect.centery - self.rect.centery,
         )
         if direction.length() > 0:
-            direction = direction.normalize()
-            next_rect = self.rect.move(direction.x * self.speed, direction.y * self.speed)
+            direction = direction.normalize() * self.speed
+            next_rect = self.rect.move(direction.x, direction.y)
             if not self._collides_with_walls(next_rect, walls):
-                self.rect.x += direction.x * self.speed
-                self.rect.y += direction.y * self.speed
+                self.rect.x += direction.x
+                self.rect.y += direction.y
 
         self.shoot_cooldown -= dt
         dist = math.hypot(
@@ -84,7 +86,7 @@ class Enemy(pygame.sprite.Sprite):
         )
         if dist < 250 and self.shoot_cooldown <= 0:
             self.shoot_at_player(bullets_group)
-            self.shoot_cooldown = 1.2
+            self.shoot_cooldown = 1.0
 
     def _collides_with_walls(self, rect, walls):
         for wall in walls:
@@ -101,9 +103,9 @@ class Enemy(pygame.sprite.Sprite):
         if distance == 0:
             dx, dy = 1, 0
             distance = 1
-        bullet_dir = pygame.math.Vector2(dx / distance, dy / distance)
-        bullet = Bullet(start_x, start_y, bullet_dir.x, bullet_dir.y, enemy=True)
-        bullets_group.add(bullet)
+        vel_x = dx / distance
+        vel_y = dy / distance
+        bullets_group.add(Bullet(start_x, start_y, vel_x, vel_y, enemy=True))
 
 
 class Gem(pygame.sprite.Sprite):
@@ -131,8 +133,8 @@ class Bullet(pygame.sprite.Sprite):
         color = (255, 255, 255) if not enemy else (255, 120, 120)
         pygame.draw.circle(self.image, color, (self.radius, self.radius), self.radius)
         self.rect = self.image.get_rect(center=(x, y))
-        self.vx = vx * 7.5
-        self.vy = vy * 7.5
+        self.vx = vx * 8.0
+        self.vy = vy * 8.0
         self.enemy = enemy
 
     def update(self, dt, walls):
@@ -144,5 +146,5 @@ class Bullet(pygame.sprite.Sprite):
                 self.kill()
                 return
 
-        if self.rect.left < 0 or self.rect.right > 1920 or self.rect.top < 0 or self.rect.bottom > 1080:
+        if self.rect.left < 0 or self.rect.right > WIDTH or self.rect.top < 0 or self.rect.bottom > HEIGHT:
             self.kill()

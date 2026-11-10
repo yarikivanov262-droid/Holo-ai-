@@ -17,6 +17,7 @@ def main():
     controller = Controller(mode="pc")
     aimbot = PredictiveAim(bullet_speed=BULLET_SPEED)
     brain = Brain()
+
     bot = TgBot()
     bot.run()
 

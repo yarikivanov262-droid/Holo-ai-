@@ -25,17 +25,24 @@ class TgBot:
         @self.bot.message_handler(func=lambda m: True)
         def handle_text(message):
             text = message.text.strip()
+
             if text == "Старт":
                 if os.path.exists("pause.flag"):
                     os.remove("pause.flag")
                 self.bot.send_message(message.chat.id, "Бот активирован.")
-            elif text == "Стоп":
+                return
+
+            if text == "Стоп":
                 with open("pause.flag", "w", encoding="utf-8") as f:
                     f.write("paused")
                 self.bot.send_message(message.chat.id, "Пауза активирована.")
-            elif text == "Статус":
+                return
+
+            if text == "Статус":
                 self.bot.send_message(message.chat.id, "Бот активен")
-            elif text == "Кубки":
+                return
+
+            if text == "Кубки":
                 try:
                     response = requests.get("https://httpbin.org/get", timeout=5)
                     cups = 7 if response.status_code == 200 else 0

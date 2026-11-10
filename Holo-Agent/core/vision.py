@@ -10,11 +10,13 @@ from config import CLASSES, CONF_THRESHOLD, MODEL_PATH
 
 class Vision:
     def __init__(self, model_path=MODEL_PATH, device=None, use_android=False):
+        self.model_path = model_path
         self.device = device
         self.use_android = use_android
-        self.model_path = model_path
+
         if not os.path.exists(self.model_path):
             raise FileNotFoundError(f"YOLO model not found: {self.model_path}")
+
         self.session = ort.InferenceSession(self.model_path, providers=["CPUExecutionProvider"])
         self.input_name = self.session.get_inputs()[0].name
 
@@ -31,10 +33,10 @@ class Vision:
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         resized = cv2.resize(rgb, (640, 640), interpolation=cv2.INTER_LINEAR)
         normalized = resized.astype(np.float32) / 255.0
-        blob = normalized.transpose(2, 0, 1)
-        blob = np.expand_dims(blob, axis=0)
+        input_tensor = normalized.transpose(2, 0, 1)
+        input_tensor = np.expand_dims(input_tensor, axis=0)
 
-        outputs = self.session.run(None, {self.input_name: blob})
+        outputs = self.session.run(None, {self.input_name: input_tensor})
         prediction = outputs[0]
         if prediction.ndim == 3:
             prediction = prediction[0]
@@ -55,10 +57,12 @@ class Vision:
                 y_center = float(row[1])
                 width = float(row[2])
                 height = float(row[3])
+
                 x1 = (x_center - width / 2.0) * (1920 / 640.0)
                 y1 = (y_center - height / 2.0) * (1080 / 640.0)
                 x2 = (x_center + width / 2.0) * (1920 / 640.0)
                 y2 = (y_center + height / 2.0) * (1080 / 640.0)
+
                 cls_name = CLASSES[class_id] if class_id < len(CLASSES) else "unknown"
                 detections.append({
                     "class": cls_name,
@@ -77,11 +81,20 @@ class Vision:
                 class_id = int(row[5])
                 if conf < CONF_THRESHOLD:
                     continue
+
                 cls_name = CLASSES[class_id] if class_id < len(CLASSES) else "unknown"
                 detections.append({
                     "class": cls_name,
-                    "bbox": [x1 * (1920 / 640.0), y1 * (1080 / 640.0), x2 * (1920 / 640.0), y2 * (1080 / 640.0)],
-                    "center": (((x1 + x2) / 2.0) * (1920 / 640.0), ((y1 + y2) / 2.0) * (1080 / 640.0)),
+                    "bbox": [
+                        x1 * (1920 / 640.0),
+                        y1 * (1080 / 640.0),
+                        x2 * (1920 / 640.0),
+                        y2 * (1080 / 640.0),
+                    ],
+                    "center": (
+                        ((x1 + x2) / 2.0) * (1920 / 640.0),
+                        ((y1 + y2) / 2.0) * (1080 / 640.0),
+                    ),
                     "conf": conf,
                 })
 

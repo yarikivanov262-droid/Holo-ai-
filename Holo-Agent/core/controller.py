@@ -4,7 +4,7 @@ from config import ATTACK_BTN_X, ATTACK_BTN_Y
 
 try:
     import adbutils
-except ImportError:
+except ImportError:  # pragma: no cover
     adbutils = None
 
 

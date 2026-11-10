@@ -2,8 +2,8 @@ import math
 
 import pygame
 
-from settings import BG_COLOR, FPS, HEIGHT, WIDTH
 from entities import Enemy, Gem, Player, Wall
+from settings import BG_COLOR, FPS, HEIGHT, WIDTH
 
 
 def build_level():
@@ -28,9 +28,11 @@ def build_level():
 
     for i in range(10):
         angle = (2 * math.pi * i) / 10
-        r = 170
-        x = WIDTH / 2 + math.cos(angle) * r
-        y = HEIGHT / 2 + math.sin(angle) * r
+        radius = 170
+        cx = WIDTH / 2
+        cy = HEIGHT / 2
+        x = cx + math.cos(angle) * radius
+        y = cy + math.sin(angle) * radius
         gems.add(Gem(int(x), int(y)))
 
     player = Player(220, 220)
@@ -46,6 +48,7 @@ def build_level():
 def main():
     pygame.init()
     pygame.display.set_caption("Holo Arena")
+    pygame.mouse.set_visible(True)
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
     font = pygame.font.SysFont(None, 32)
@@ -59,10 +62,11 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
-        player.update(dt, None, walls, bullets)
+        player.update(dt, walls, bullets)
         enemies.update(dt, walls, bullets)
         bullets.update(dt, walls)
 
